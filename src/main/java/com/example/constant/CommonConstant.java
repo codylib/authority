@@ -16,6 +16,11 @@ public interface CommonConstant {
      * Basic Token 前缀
      */
     String AUTH_TYPE = "Bearer ";
+    
+    /**
+     * 用户信息缓存 key
+     */
+    String USER_CACHE_KEY = "login.user";
 
     /**
      * 升序

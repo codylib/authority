@@ -49,9 +49,8 @@ public class AuthInterceptor {
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
         // 当前登录用户
-        String header = request.getHeader(CommonConstant.AUTH_HEADER);
-        
-        User user = userService.getLoginUser(request);
+        String token = request.getHeader(CommonConstant.AUTH_HEADER);
+        User user = userService.getLoginUser(token);
         // 拥有任意权限即通过
         if (CollectionUtils.isNotEmpty(anyRole)) {
             String userRole = user.getRole();

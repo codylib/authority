@@ -47,6 +47,8 @@ public class AuthController {
         String accessToken = JWTUtil.createToken(payload, CommonConstant.ACCESS_TOKEN.getBytes());
         String refreshToken = JWTUtil.createToken(payload, CommonConstant.REFRESH_TOKEN.getBytes());
         response.addCookie(new Cookie("jwt", refreshToken));
-        return ResultUtils.success(accessToken);
+        Map<String, Object> res = new HashMap<>();
+        res.put("accessToken", accessToken);
+        return ResultUtils.success(res);
     }
 }

@@ -19,11 +19,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
-
+    
     @Resource
     private UserMapper userMapper;
     
@@ -47,11 +48,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public User login(String username, String password) {
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
-        String encryptPassword = new HMac(HmacAlgorithm.HmacSHA256, salt.getBytes()).digestBase64(password, false);
-        if (!user.getPassword().equals(encryptPassword)) {
-            return null;
+        if (user != null) {
+            String encryptPassword = new HMac(HmacAlgorithm.HmacSHA256, salt.getBytes()).digestBase64(password, false);
+            if (!user.getPassword().equals(encryptPassword)) {
+                return null;
+            }
+            redisTemplate.opsForValue().set(CommonConstant.USER_CACHE_KEY + ":" + user.getId(), JSONUtil.toJsonStr(user), 1, TimeUnit.DAYS);
         }
-        redisTemplate.opsForValue().set(CommonConstant.USER_CACHE_KEY, JSONUtil.toJsonStr(user));
         return user;
     }
 }

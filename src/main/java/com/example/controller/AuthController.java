@@ -53,8 +53,6 @@ public class AuthController {
         if (newToken == null) {
             return ResultUtils.error(40000, "token已过期");
         }
-        Map<String, Object> res = new HashMap<>();
-        res.put("accessToken", newToken);
-        return ResultUtils.success(res);
+        return ResultUtils.success(newToken);
     }
 }

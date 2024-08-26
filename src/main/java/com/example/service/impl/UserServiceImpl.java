@@ -19,6 +19,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -46,15 +50,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
     
     @Override
-    public User login(String username, String password) {
+    public String login(String username, String password, HttpServletResponse response) {
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+        String accessToken = null;
         if (user != null) {
             String encryptPassword = new HMac(HmacAlgorithm.HmacSHA256, salt.getBytes()).digestBase64(password, false);
             if (!user.getPassword().equals(encryptPassword)) {
                 return null;
             }
             redisTemplate.opsForValue().set(CommonConstant.USER_CACHE_KEY + ":" + user.getId(), JSONUtil.toJsonStr(user), 1, TimeUnit.DAYS);
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("id", user.getId());
+            accessToken = JWTUtil.createToken(payload, CommonConstant.ACCESS_TOKEN.getBytes());
+            String refreshToken = JWTUtil.createToken(payload, CommonConstant.REFRESH_TOKEN.getBytes());
+            response.addCookie(new Cookie("jwt", refreshToken));
+            redisTemplate.opsForValue().set(CommonConstant.REFRESH_CACHE_KEY + ":" + user.getId(), refreshToken, 1, TimeUnit.DAYS);
         }
-        return user;
+        return accessToken;
+    }
+    
+    @Override
+    public String refresh(String accessToken) {
+        Long id = (Long) JWTUtil.parseToken(accessToken).getPayload("id");
+        String refreshToken = redisTemplate.opsForValue().get(CommonConstant.REFRESH_CACHE_KEY + ":" + id);
+        if (StringUtils.isBlank(refreshToken)) {
+            return null;
+        }
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("id", id);
+        return JWTUtil.createToken(payload, CommonConstant.ACCESS_TOKEN.getBytes());
     }
 }

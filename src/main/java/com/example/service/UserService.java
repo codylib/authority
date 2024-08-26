@@ -5,6 +5,7 @@ import com.example.model.entity.User;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 public interface UserService extends IService<User> {
@@ -24,5 +25,12 @@ public interface UserService extends IService<User> {
      * @param password 密码
      * @return
      */
-    User login(String username, String password);
+    String login(String username, String password, HttpServletResponse response);
+    
+    /**
+     * 刷新accessToken
+     * @param accessToken
+     * @return
+     */
+    String refresh(String accessToken);
 }

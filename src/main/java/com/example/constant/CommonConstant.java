@@ -31,6 +31,11 @@ public interface CommonConstant {
      * 用户信息缓存 key
      */
     String USER_CACHE_KEY = "login.user";
+    
+    /**
+     * 刷新token缓存 key
+     */
+    String REFRESH_CACHE_KEY = "login.refresh";
 
     /**
      * 升序

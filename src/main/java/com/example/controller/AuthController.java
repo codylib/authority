@@ -8,10 +8,7 @@ import com.example.model.dto.LoginDTO;
 import com.example.model.entity.User;
 import com.example.service.UserService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
@@ -38,17 +35,26 @@ public class AuthController {
         if (StringUtils.isAnyBlank(username, password)) {
             return ResultUtils.error(40000, "参数错误");
         }
-        User user = userService.login(username, password);
-        if (user == null) {
+        String accessToken = userService.login(username, password, response);
+        if (accessToken == null) {
             return ResultUtils.error(40000, "用户名或密码错误");
         }
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("id", user.getId());
-        String accessToken = JWTUtil.createToken(payload, CommonConstant.ACCESS_TOKEN.getBytes());
-        String refreshToken = JWTUtil.createToken(payload, CommonConstant.REFRESH_TOKEN.getBytes());
-        response.addCookie(new Cookie("jwt", refreshToken));
         Map<String, Object> res = new HashMap<>();
         res.put("accessToken", accessToken);
+        return ResultUtils.success(res);
+    }
+    
+    @PostMapping("/refresh")
+    public BaseResponse refresh(@RequestHeader("Authorization") String accessToken) {
+        if (StringUtils.isBlank(accessToken)) {
+            return ResultUtils.error(40000, "参数错误");
+        }
+        String newToken = userService.refresh(accessToken);
+        if (newToken == null) {
+            return ResultUtils.error(40000, "token已过期");
+        }
+        Map<String, Object> res = new HashMap<>();
+        res.put("accessToken", newToken);
         return ResultUtils.success(res);
     }
 }

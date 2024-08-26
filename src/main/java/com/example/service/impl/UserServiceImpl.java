@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.crypto.digest.HMac;
 import cn.hutool.crypto.digest.HmacAlgorithm;
 import cn.hutool.json.JSONUtil;
@@ -71,7 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     
     @Override
     public String refresh(String accessToken) {
-        Long id = (Long) JWTUtil.parseToken(accessToken).getPayload("id");
+        Long id = NumberUtil.parseLong(JWTUtil.parseToken(accessToken).getPayload("id").toString());
         String refreshToken = redisTemplate.opsForValue().get(CommonConstant.REFRESH_CACHE_KEY + ":" + id);
         if (StringUtils.isBlank(refreshToken)) {
             return null;

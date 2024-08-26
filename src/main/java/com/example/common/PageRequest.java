@@ -1,6 +1,6 @@
 package com.example.common;
 
-import com.springboot.project.constant.CommonConstant;
+import com.example.constant.CommonConstant;
 import lombok.Data;
 
 /**

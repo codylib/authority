@@ -18,6 +18,16 @@ public interface CommonConstant {
     String AUTH_TYPE = "Bearer ";
     
     /**
+     * 访问令牌
+     */
+    String ACCESS_TOKEN = "accessToken";
+    
+    /**
+     * 刷新令牌
+     */
+    String REFRESH_TOKEN = "refreshToken";
+    
+    /**
      * 用户信息缓存 key
      */
     String USER_CACHE_KEY = "login.user";

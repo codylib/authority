@@ -2,6 +2,7 @@ package com.example.controller;
 
 import cn.hutool.jwt.JWTUtil;
 import com.example.common.BaseResponse;
+import com.example.common.ErrorCode;
 import com.example.common.ResultUtils;
 import com.example.constant.CommonConstant;
 import com.example.model.dto.LoginDTO;
@@ -33,11 +34,11 @@ public class AuthController {
         String username = loginDTO.getUsername();
         String password = loginDTO.getPassword();
         if (StringUtils.isAnyBlank(username, password)) {
-            return ResultUtils.error(40000, "参数错误");
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
         String accessToken = userService.login(username, password, response);
         if (accessToken == null) {
-            return ResultUtils.error(40000, "用户名或密码错误");
+            return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR);
         }
         Map<String, Object> res = new HashMap<>();
         res.put("accessToken", accessToken);
@@ -45,14 +46,23 @@ public class AuthController {
     }
     
     @PostMapping("/refresh")
-    public BaseResponse refresh(@RequestHeader("Authorization") String accessToken) {
-        if (StringUtils.isBlank(accessToken)) {
-            return ResultUtils.error(40000, "参数错误");
+    public BaseResponse refresh(@CookieValue("jwt") String refreshToken) {
+        if (StringUtils.isBlank(refreshToken)) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
-        String newToken = userService.refresh(accessToken);
+        String newToken = userService.refresh(refreshToken);
         if (newToken == null) {
-            return ResultUtils.error(40000, "token已过期");
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR);
         }
         return ResultUtils.success(newToken);
+    }
+    
+    @PostMapping("/logout")
+    public BaseResponse logout(@RequestHeader("Authorization") String accessToken, HttpServletResponse response) {
+        if (StringUtils.isBlank(accessToken)) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
+        }
+        userService.logout(accessToken, response);
+        return ResultUtils.success("退出成功");
     }
 }

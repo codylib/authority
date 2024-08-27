@@ -29,9 +29,16 @@ public interface UserService extends IService<User> {
     String login(String username, String password, HttpServletResponse response);
     
     /**
-     * 刷新accessToken
+     * 通过refreshToken刷新accessToken
+     * @param refreshToken
+     * @return
+     */
+    String refresh(String refreshToken);
+    
+    /**
+     * 退出登录
      * @param accessToken
      * @return
      */
-    String refresh(String accessToken);
+    void logout(String accessToken, HttpServletResponse response);
 }

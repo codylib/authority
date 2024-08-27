@@ -71,14 +71,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
     
     @Override
-    public String refresh(String accessToken) {
-        Long id = NumberUtil.parseLong(JWTUtil.parseToken(accessToken).getPayload("id").toString());
-        String refreshToken = redisTemplate.opsForValue().get(CommonConstant.REFRESH_CACHE_KEY + ":" + id);
-        if (StringUtils.isBlank(refreshToken)) {
+    public String refresh(String refreshToken) {
+        Long id = NumberUtil.parseLong(JWTUtil.parseToken(refreshToken).getPayload("id").toString());
+        String refreshTokenCache = redisTemplate.opsForValue().get(CommonConstant.REFRESH_CACHE_KEY + ":" + id);
+        if (StringUtils.isBlank(refreshTokenCache)) {
             return null;
         }
         Map<String, Object> payload = new HashMap<>();
         payload.put("id", id);
         return JWTUtil.createToken(payload, CommonConstant.ACCESS_TOKEN.getBytes());
+    }
+    
+    @Override
+    public void logout(String accessToken, HttpServletResponse response) {
+        Long id = NumberUtil.parseLong(JWTUtil.parseToken(accessToken).getPayload("id").toString());
+        redisTemplate.delete(CommonConstant.USER_CACHE_KEY + ":" + id);
+        redisTemplate.delete(CommonConstant.REFRESH_CACHE_KEY + ":" + id);
+        response.addCookie(new Cookie("jwt", ""));
     }
 }
